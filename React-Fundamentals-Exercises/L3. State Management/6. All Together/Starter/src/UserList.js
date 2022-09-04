@@ -1,7 +1,9 @@
+import { useState } from "react";
 import PropTypes from "prop-types";
 import User from "./User.js";
-import { useState } from "react";
 
+/* Used to display a list of all users in the list.
+ */
 const UserList = ({ users }) => {
   const [showGamesPlayed, setShowGamesPlayed] = useState(true);
 

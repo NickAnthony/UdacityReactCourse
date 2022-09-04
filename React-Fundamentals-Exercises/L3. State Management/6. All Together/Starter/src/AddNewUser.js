@@ -1,38 +1,33 @@
 import { useState } from 'react';
 import PropTypes from 'prop-types';
 
+const INITIAL_STATE = {
+  firstName: "",
+  lastName: "",
+  username: "",
+  gamesPlayed: 0,
+}
 
+/* Add a new user to the list.  Validates the input and callback back to the
+ * parent component.
+ */
 const AddNewUser = ({ handleAddNewUser, usernames, }) => {
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [username, setUsername] = useState("");
-  const [gamesPlayed, setGamesPlayed] = useState(0);
+  const [user, setUser] = useState(INITIAL_STATE);
 
-  const handleFirstNameChange = (event) => {
-    console.log(`${firstName} ${lastName} ${username}`)
-    setFirstName(event.target.value);
-  }
-  const handleLastNameChange = (event) => {
-    setLastName(event.target.value);
-  }
-  const handleUsernameChange = (event) => {
-    setUsername(event.target.value);
-    console.log(username);
-    console.log(username === "");
-  }
-  const handleGamesPlayedChange = (event) => {
-    var newGamesPlayed = event.target.value.trim();
-    if (newGamesPlayed < 0) {
-      newGamesPlayed = 0;
+  const handleInputChange = (event) => {
+    var { name, value } = event.target;
+    if (name === "gamesPlayed" && value < 0) {
+      value = 0;
     }
-    setGamesPlayed(newGamesPlayed);
-  }
+    console.log(name, value);
+    setUser({ ...user, [name]: value });
+  };
 
   // Used to determine if the "Add" butt should be enabled/disabled
   const isAddButtonEnabled = (
-      firstName.trim().length
-      && lastName.trim().length
-      && username.trim().length);
+      user.firstName.trim().length
+      && user.lastName.trim().length
+      && user.username.trim().length);
 
   // Validates the username
   const validateUsername = (username) => {
@@ -54,26 +49,23 @@ const AddNewUser = ({ handleAddNewUser, usernames, }) => {
   // Called when the form is submitted
   const handleSubmit = (event) => {
     event.preventDefault();
-    if (firstName === "") {
+    if (user.firstName === "") {
       alert("First name cannot be empty");
       return;
     }
-    if (lastName === "") {
+    if (user.lastName === "") {
       alert("Last name cannot be empty");
       return;
     }
-    if (!validateUsername(username)) {
+    if (!validateUsername(user.username)) {
       return;
     }
-    if (gamesPlayed < 0) {
+    if (user.gamesPlayed < 0) {
       alert("Games played cannot be less than 0");
       return;
     }
-    handleAddNewUser(firstName, lastName, username, gamesPlayed);
-    setFirstName("");
-    setLastName("");
-    setUsername("");
-    setGamesPlayed(0);
+    handleAddNewUser(user);
+    setUser(INITIAL_STATE);
   }
   return (
     <div>
@@ -82,29 +74,33 @@ const AddNewUser = ({ handleAddNewUser, usernames, }) => {
           <p>First name</p>
           <input
             type="text"
-            value={firstName}
-            onChange={handleFirstNameChange} />
+            name="firstName"
+            value={user.firstName}
+            onChange={handleInputChange} />
         </label>
         <label>
           <p>Last name</p>
           <input
             type="text"
-            value={lastName}
-            onChange={handleLastNameChange} />
+            name="lastName"
+            value={user.lastName}
+            onChange={handleInputChange} />
         </label>
         <label>
           <p>Username</p>
           <input
             type="text"
-            value={username}
-            onChange={handleUsernameChange} />
+            name="username"
+            value={user.username}
+            onChange={handleInputChange} />
         </label>
         <label>
           <p>Games played</p>
           <input
             type="number"
-            value={gamesPlayed}
-            onChange={handleGamesPlayedChange} />
+            name="gamesPlayed"
+            value={user.gamesPlayed}
+            onChange={handleInputChange} />
         </label>
         <p></p>
         <input type="submit" value="Add" disabled={!isAddButtonEnabled}/>

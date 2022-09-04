@@ -1,39 +1,35 @@
 import "./App.css";
+import {useState} from 'react';
 import AddNewUser from "./AddNewUser.js";
 import UserList from "./UserList.js";
-import {useState} from 'react';
 
 const App = () => {
   const [users, setUsers] = useState([{
-      first_name: "Ayana",
-      last_name: "Hendricks",
+      firstName: "Ayana",
+      lastName: "Hendricks",
       username: "ayanarocks",
-      games_played: 6,
+      gamesPlayed: 6,
     },{
-      first_name: "Callum",
-      last_name: "Haynes",
+      firstName: "Callum",
+      lastName: "Haynes",
       username: "haynes12",
-      games_played: 0,
+      gamesPlayed: 0,
     },{
-      first_name: "Katrina",
-      last_name: "Nixon",
+      firstName: "Katrina",
+      lastName: "Nixon",
       username: "knix",
-      games_played: 2,
+      gamesPlayed: 2,
     },{
-      first_name: "Ibrahim",
-      last_name: "Roman",
+      firstName: "Ibrahim",
+      lastName: "Roman",
       username: "gam3r",
-      games_played: 12,
+      gamesPlayed: 12,
     }]);
 
   const usernames = users.map((user) => (user.username));
-  const handleAddNewUser = (firstName, lastName, username, gamesPlayed) => {
-    setUsers([...users, {
-      first_name: firstName,
-      last_name: lastName,
-      username: username,
-      games_played: gamesPlayed,
-    }]);
+  const handleAddNewUser = (newUser) => {
+    console.log(newUser);
+    setUsers([...users, newUser]);
   }
 
   return (
