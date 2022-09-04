@@ -19,7 +19,6 @@ const AddNewUser = ({ handleAddNewUser, usernames, }) => {
     if (name === "gamesPlayed" && value < 0) {
       value = 0;
     }
-    console.log(name, value);
     setUser({ ...user, [name]: value });
   };
 
@@ -69,8 +68,8 @@ const AddNewUser = ({ handleAddNewUser, usernames, }) => {
   }
   return (
     <div>
-      <form onSubmit={handleSubmit}>
-        <label>
+      <form className="new-user-container" onSubmit={handleSubmit}>
+        <label className="new-user-input">
           <p>First name</p>
           <input
             type="text"
@@ -78,7 +77,7 @@ const AddNewUser = ({ handleAddNewUser, usernames, }) => {
             value={user.firstName}
             onChange={handleInputChange} />
         </label>
-        <label>
+        <label className="new-user-input">
           <p>Last name</p>
           <input
             type="text"
@@ -86,7 +85,7 @@ const AddNewUser = ({ handleAddNewUser, usernames, }) => {
             value={user.lastName}
             onChange={handleInputChange} />
         </label>
-        <label>
+        <label className="new-user-input">
           <p>Username</p>
           <input
             type="text"
@@ -94,7 +93,7 @@ const AddNewUser = ({ handleAddNewUser, usernames, }) => {
             value={user.username}
             onChange={handleInputChange} />
         </label>
-        <label>
+        <label className="new-user-input">
           <p>Games played</p>
           <input
             type="number"
@@ -102,8 +101,9 @@ const AddNewUser = ({ handleAddNewUser, usernames, }) => {
             value={user.gamesPlayed}
             onChange={handleInputChange} />
         </label>
-        <p></p>
-        <input type="submit" value="Add" disabled={!isAddButtonEnabled}/>
+        <button class="button-6" disabled={!isAddButtonEnabled}>
+          Add
+        </button>
       </form>
     </div>
   );

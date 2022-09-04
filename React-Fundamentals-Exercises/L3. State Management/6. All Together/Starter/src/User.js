@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types';
+import UserProfile from "./user-profile-icon.png";
 
 
 /* Used to display one specifc user in the user list.
@@ -6,11 +7,16 @@ import PropTypes from 'prop-types';
 const User = ({ user, showGamesPlayed }) => {
   const gamesPlayed = showGamesPlayed ? user.gamesPlayed : "*";
   return (
-        <li key={user.username} className="user">
-          <p>{user.firstName} {user.lastName}</p>
-          <p>{user.username}</p>
-          <p>{user.username} played {gamesPlayed} games.</p>
-        </li>
+        <div key={user.username} className="user">
+          <div className="user-profile-photo-container">
+            <img  src={UserProfile} alt="user profile photo" className="user-profile-photo"/>
+          </div>
+          <div className="user-details">
+            <p className="user-title">{user.firstName} {user.lastName}</p>
+            <p>{user.username}</p>
+            <p>{user.username} played {gamesPlayed} games.</p>
+          </div>
+        </div>
   );
 }
 

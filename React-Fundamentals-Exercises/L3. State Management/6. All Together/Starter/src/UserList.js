@@ -14,13 +14,12 @@ const UserList = ({ users }) => {
   const buttonValue = showGamesPlayed ? "Hide games played" : "Show games played";
 
   return (
-    <div>
-      <button
-        className="show-hide-games-played-button"
+    <div className="user-list-container">
+    <button className="button-6 diplay-games-button" role="button"
         onClick={handleShowGamesPlayChange}>
           {buttonValue}
       </button>
-      <ul className="user-list">
+      <div className="user-list">
         {users.map((user) => (
           <User
             key={user.username}
@@ -28,7 +27,7 @@ const UserList = ({ users }) => {
             showGamesPlayed={showGamesPlayed}/>
         ))
         }
-      </ul>
+      </div>
     </div>
   );
 }
