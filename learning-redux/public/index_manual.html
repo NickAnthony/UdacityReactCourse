@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#000000" />
+    <title>Udacity Todos App</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/redux/4.1.2/redux.min.js"></script>
+    <script src="https://unpkg.com/react@17.0.2/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@17.0.2/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone@7.17.6/babel.min.js"></script>
+    <script src="https://tylermcginnis.com/goals-todos-api/index.js"></script>
+    <script src="https://ui.dev/goals-todos-api/index.js"></script>
+    <script src="https://unpkg.com/redux-thunk@2.2.0/dist/redux-thunk.min.js"></script>
+  </head>
+  <body>
+    <div id="app"></div>
+
+    <script type="text/babel">
+      // Constants
+      const ADD_TODO = "ADD_TODO";
+      const REMOVE_TODO = "REMOVE_TODO";
+      const TOGGLE_TODO = "TOGGLE_TODO";
+      const ADD_GOAL = "ADD_GOAL";
+      const REMOVE_GOAL = "REMOVE_GOAL";
+      const RECEIVE_DATA = "RECEIVE_DATA";
+      
+      // -- ACTION CREATORS -- //
+
+      function addTodoAction (id, name, complete = false) {
+          return {
+              type: ADD_TODO,
+              todo: {
+                  id: id,
+                  name: name,
+                  complete: complete,
+              },
+          }
+      }
+      function handleAddTodo(name, callback) {
+        return (dispatch) => {
+          return API.saveTodo(name).then((result) => {
+            dispatch(addTodoAction(
+              result.id,
+              result.name,
+              result.complete
+            ));
+            callback();
+          }).catch(() => {
+            alert(`Failed to save ${name}.  Please try again.`)
+          });
+        }
+      }
+      function removeTodoAction (id) {
+          return {
+              type: REMOVE_TODO,
+              id: id,
+          }
+      }
+      // Action creator, because it creates an action
+      // We can't invoke here because these are pure functions
+      function handleDeleteTodo(todo) {
+        return (dispatch) => {
+          dispatch(removeTodoAction(todo.id));
+
+          return API.deleteTodo(todo.id).catch(() => {
+            dispatch(addTodoAction(todo.id, todo.name, todo.complete));
+            alert(`Failed to remove ${todo.name}.  Please try again.`)
+          });
+        }
+      }
+      function toggleTodoAction (id) {
+          return {
+              type: TOGGLE_TODO,
+              id: id,
+          }
+      }
+      function handleToggleTodo(todo) {
+        return (dispatch) => {
+          dispatch(toggleTodoAction(todo.id));
+
+          return API.saveTodoToggle(todo.id).catch(() => {
+            dispatch(toggleTodoAction(todo.id));
+            alert(`Failed to mark ${todo.name} as ${!todo.complete ? "completed." : "incomplete."}.  Please try again.`);
+          })
+        }
+      }
+      function addGoalAction (id, name) {
+          return {
+              type: ADD_GOAL,
+              goal: {
+                  id: id,
+                  name: name,
+              }
+          }
+      }
+      function handleAddGoal(name, callback) {
+        return (dispatch) => {
+          return API.saveGoal(name).then((result) => {
+            dispatch(addGoalAction(
+              result.id,
+              result.name
+            ));
+            callback();
+          }).catch(() => {
+            alert(`Failed to save ${name}.  Please try again.`);
+          })
+        }
+      }
+      function removeGoalAction (id) {
+        return {
+            type: REMOVE_GOAL,
+            id: id,
+        }
+      }
+      function handleDeleteGoal(goal) {
+        return (dispatch) => {
+          dispatch(removeGoalAction(goal.id));
+
+          return API.deleteGoal(goal.id).catch(() => {
+            dispatch(addGoalAction(goal.id, goal.name));
+            alert(`Failed to remove ${goal.name}.  Please try again.`)
+          })
+        }
+      }
+      function handleReceiveData() {
+        return (dispatch) => {
+          Promise.all([API.fetchTodos(), API.fetchGoals()]).then(([todos, goals]) => {
+            dispatch(receiveDataAction(todos, goals));
+          });
+        }
+      }
+      function receiveDataAction (todos, goals) {
+          return {
+              type: RECEIVE_DATA,
+              todos: todos,
+              goals: goals,
+          }
+      }
+      
+      // -- REDUCERS -- //
+
+      function todos (state = [], action) {
+          switch (action.type) {
+              case ADD_TODO:
+                  return state.concat([action.todo]);
+              case REMOVE_TODO:
+                  return state.filter((todo) => todo.id !== action.id);
+              case TOGGLE_TODO:
+                  return state.map((todo) => {
+                      if (todo.id === action.id) {
+                          return Object.assign({}, todo, { complete: !todo.complete });
+                      } else {
+                          return todo;
+                      }
+                  });
+              case RECEIVE_DATA:
+                  return action.todos;
+              default:
+                  return state;
+          }
+      }
+
+      function goals (state = [], action) {
+          switch (action.type) {
+              case ADD_GOAL:
+                  return state.concat([action.goal]);
+              case REMOVE_GOAL:
+                  return state.filter((goal) => goal.id !== action.id);
+              case RECEIVE_DATA:
+                  return action.goals;
+              default:
+                  return state;
+          }
+      }
+
+      function loading (state = true, action) {
+        switch (action.type) {
+            case RECEIVE_DATA:
+                return false;
+            default:
+                return state;
+        }
+      }
+
+      // -- MIDDLEWARE -- //
+
+      // Display an alert "That's a great goal!" whenever a new goal is added.
+      const greatGoalChecker = (store) => (next) => (action) => {
+        if (action.type == ADD_GOAL) {
+          alert("That's a great goal!");
+        }
+        return next(action);
+      }
+      // Display "Don't forget to [name of your todo item]!" whenever a new todo item is added.
+      const todoReminder = (store) => (next) => (action) => {
+        if (action.type == ADD_TODO) {
+          alert(`Don't forget to ${action.todo.name}!`);
+        }
+        return next(action);
+      }
+
+      // -- STORE -- //
+
+      const store = Redux.createStore(Redux.combineReducers({
+        todos,
+        goals,
+        loading,
+      }), Redux.applyMiddleware(ReduxThunk.default));
+
+      // -- UI LOGIC -- //
+
+      function generateNewId() {
+          return Math.random().toString(36).substring(2) + (new Date()).getTime().toString(36);
+      }
+
+      const List = ({ items, removeItem, toggleItem }) => {
+        return (
+          <ul>
+            { items &&
+              items.map((item) =>
+                <li key={item.id}>
+                  <span
+                    style={{ 
+                      textDecoration: item.complete ? 'line-through' : 'none' 
+                    }}
+                    onClick={(e) => {toggleItem && toggleItem(item)}}>
+                    {item.name}
+                  </span>
+                  <button onClick={(e) => {removeItem(item)}}>X</button>
+                </li>
+              )
+            }
+          </ul>
+        );
+      }
+
+      const Todos = (props) => {
+        const inputRef = React.useRef("");
+
+        const addItem = (e) => {
+          e.preventDefault();
+          props.store.dispatch(handleAddTodo(
+            inputRef.current.value,
+            () => {inputRef.current.value = ""}
+          ));      
+        }
+
+        const removeItem = (todo) => {
+          props.store.dispatch(handleDeleteTodo(todo));
+        }
+
+        const toggleItem = (todo) => {
+          props.store.dispatch(handleToggleTodo(todo));
+        }
+
+        return (
+          <div>
+              <h1>Todos List</h1>
+              <input type="text" placeholder="Add new todo" ref={inputRef}/>
+              <button onClick={addItem}>Add Todo</button>
+              <List items={props.todos} removeItem={removeItem} toggleItem={toggleItem}/>
+          </div>
+        )
+      }
+      const Goals = (props) => {
+        const inputRef = React.useRef("");
+
+        const addItem = (e) => {
+          e.preventDefault();
+
+          props.store.dispatch(handleAddGoal(
+            inputRef.current.value,
+            () => {inputRef.current.value = ""}
+          ));
+        }
+
+        const removeItem = (goal) => {
+          props.store.dispatch(handleDeleteGoal(goal));
+        }
+
+        return (
+          <div>
+              <h1>Goals List</h1>
+              <input type="text" placeholder="Add new goal" ref={inputRef}/>
+              <button onClick={addItem}>Add Goal</button>
+              <List items={props.goals} removeItem={removeItem} />
+          </div>
+        )
+      }
+
+      const App = (props) => {
+        const [value, setValue] = React.useState(0);
+
+        React.useEffect(() => {
+          props.store.subscribe(() => {
+            setValue((value) => value + 1);
+          })
+        }, [])
+
+        React.useEffect(() => {
+          props.store.dispatch(handleReceiveData());
+        }, [])
+
+        const { todos, goals, loading } = props.store.getState();
+        if (loading === true) {
+          return (<img src="./loading.gif" />);
+        }
+        
+        return (
+          <div>
+              <Todos store={props.store} todos={todos} />
+              <Goals store={props.store} goals={goals}  />
+          </div>
+        )
+      }
+
+      ReactDOM.render(<App store={store} />, document.getElementById("app"));
+    </script>
+  </body>
+</html>
