@@ -235,19 +235,6 @@
         );
       }
 
-      const ConnectedTodos = () => {
-        return (
-          <Context.Consumer>
-            {
-              (store) => {
-                const { todos } = store.getState();
-                return <Todos todos={todos} dispatch={store.dispatch} />
-              }
-            }
-          </Context.Consumer>
-        );
-      }
-
       const Todos = (props) => {
         const inputRef = React.useRef("");
 
@@ -277,18 +264,9 @@
         )
       }
 
-      const ConnectedGoals = () => {
-        return (
-          <Context.Consumer>
-            {
-              (store) => {
-                const { goals } = store.getState();
-                return <Goals goals={goals} dispatch={store.dispatch} />
-              }
-            }
-          </Context.Consumer>
-        );
-      }
+      const ConnectedTodos = connect((state) => ({
+        todos: state.todos,
+      }))(Todos);
 
       const Goals = (props) => {
         const inputRef = React.useRef("");
@@ -316,34 +294,17 @@
         )
       }
 
-      const ConnectedApp = () => {
-        return (
-          <Context.Consumer>
-            {
-              (store) => {
-                return(<App store={store} />);
-              }
-            }
-          </Context.Consumer>
-        );
-      }
+      const ConnectedGoals = connect((state) => ({
+        goals: state.goals
+      }))(Goals);
 
       const App = (props) => {
-        const [value, setValue] = React.useState(0);
-
         React.useEffect(() => {
-          props.store.subscribe(() => {
-            setValue((value) => value + 1);
-          })
-        }, [])
+          props.dispatch(handleReceiveData());
+        }, []);
 
-        React.useEffect(() => {
-          props.store.dispatch(handleReceiveData());
-        }, [])
-
-        const { loading } = props.store.getState();
-        if (loading === true) {
-          return (<img src="./loading.gif" />);
+        if (props.loading === true) {
+          return <img src="./loading.gif" />;
         }
         
         return (
@@ -351,10 +312,65 @@
               <ConnectedTodos />
               <ConnectedGoals />
           </div>
-        )
+        );
       }
 
+      const ConnectedApp = connect((state) => ({
+        loading: state.loading,
+      }))(App);
+
       const Context = React.createContext();
+      
+      function connect(mapStateToProps) {
+
+        // Returns a function that will wrap the component passed to it
+        // with the context.consumer and return it as a connected component.
+        return (Component) => {
+          
+          // Sets up aspects of the store interaction
+          const Reciever = (props) => {
+
+            // Value ensures the component is rerended every time the store changes.
+            const [value, setValue] = React.useState(0);
+            React.useEffect(() => {
+              const { subscribe } = props.store;
+              let mounted = true;
+
+              // subscribe() returns a function that can be invoked to
+              // unsubscribe from the store.
+              const unsubscribe = subscribe(() => {
+                setValue((value) => value + 1);
+              });
+
+              return () => {
+                unsubscribe();
+                mounted = false;
+              }
+            }, []);
+
+            const { dispatch, getState } = props.store;
+            const state = getState();
+            // Map state to props is a simple function that takes the state,
+            // and creates an object with the fields it needs.
+            const stateNeeded = mapStateToProps(state);
+
+            // Return the component that is now decorated with the props
+            // needed from the state.
+            return <Component {...stateNeeded} dispatch={dispatch} />;
+          }
+          
+          // Wrap the Receiver in a context.consumer
+          const ConnectedComponent = () => {
+            return(
+              <Context.Consumer>
+                {(store) => <Reciever store={store} />}
+              </Context.Consumer>
+            );
+          };
+
+          return ConnectedComponent;
+        }
+      }
 
       const Provider = (props) => {
         return (
