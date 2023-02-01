@@ -5,6 +5,6 @@ import * as React from "react";
 describe("Greeting", () => {
   it("will match snapshot", () => {
     var component = render(<Greeting />);
-    expect(component).toMatchSnapshot;
+    expect(component).toMatchSnapshot();
   });
 });
